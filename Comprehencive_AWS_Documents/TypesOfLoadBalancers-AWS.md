@@ -167,7 +167,9 @@ Impact: Enabling cross-zone load balancing (which is enabled by default for ALBs
 
 Cost: While beneficial for distribution, cross-zone data transfer costs might apply.
 
-https://drive.google.com/file/d/1xelWXS9VL05YodsEvGO-c-nJY94TogRX/view?usp=sharing
+![Alt text for the image](https://drive.google.com/file/d/1xelWXS9VL05YodsEvGO-c-nJY94TogRX/view?usp=sharing)
+
+
 
 6. Health Checks
    While not a routing "strategy" itself, robust health checks are fundamental to all load balancing. The ALB continuously monitors the health of its registered targets. If a target fails health checks, the ALB stops sending traffic to it until it becomes healthy again. This ensures that only operational instances receive traffic, preventing requests from being sent to unhealthy or crashed services.
