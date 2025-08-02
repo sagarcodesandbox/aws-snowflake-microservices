@@ -9,13 +9,13 @@
 // import org.junit.jupiter.api.Test;
 
 // example test. To run these tests, uncomment this file, along with the
-// example resource in java/src/main/java/com/myorg/SnowflakeStack.java
-// public class SnowflakeTest {
+// example resource in java/src/main/java/com/myorg/SnowFlakeCdkStack.java
+// public class SnowFlakeCdkTest {
 
 //     @Test
 //     public void testStack() throws IOException {
 //         App app = new App();
-//         SnowflakeStack stack = new SnowflakeStack(app, "test");
+//         SnowFlakeCdkStack stack = new SnowFlakeCdkStack(app, "test");
 
 //         Template template = Template.fromStack(stack);
 

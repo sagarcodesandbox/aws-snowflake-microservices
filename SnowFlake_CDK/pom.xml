@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.myorg</groupId>
-    <artifactId>snowflake</artifactId>
+    <artifactId>snow_flake_cdk</artifactId>
     <version>0.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cdk.version>2.190.0</cdk.version>
+        <cdk.version>2.206.0</cdk.version>
         <constructs.version>[10.0.0,11.0.0)</constructs.version>
         <junit.version>5.7.1</junit.version>
     </properties>
@@ -30,7 +30,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.myorg.SnowflakeApp</mainClass>
+                    <mainClass>com.myorg.SnowFlakeCdkApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
