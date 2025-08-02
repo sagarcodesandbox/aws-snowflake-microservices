@@ -122,7 +122,7 @@ A/B Testing: Send a small percentage of traffic to a new feature (in a different
 
 Canary Deployments: Similar to Blue/Green, but typically with very small, controlled traffic shifts.
 
-4. Sticky Sessions (Session Affinity)
+## 4. Sticky Sessions (Session Affinity)
    How it works: This feature ensures that requests from a specific client are always routed to the same target instance for a defined duration. This is crucial for stateful applications that store session information on the server (though modern microservices typically aim to be stateless).
 
 How it's implemented: ALBs use a load balancer generated cookie (AWSELB) or an application cookie (if configured) to track the client and route subsequent requests to the same target.
