@@ -167,7 +167,7 @@ Impact: Enabling cross-zone load balancing (which is enabled by default for ALBs
 
 Cost: While beneficial for distribution, cross-zone data transfer costs might apply.
 
-![Cross Zone Load Balancing](https://drive.google.com/file/d/19mrsB-F6qfjgB7g0ls_cWC8YvUdh36Pa/view?usp=sharing)
+![Cross Zone Load Balancing](https://drive.google.com/uc?export=view&id=19mrsB-F6qfjgB7g0ls_cWC8YvUdh36Pa)
 
 
 
