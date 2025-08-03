@@ -439,3 +439,6 @@ This architecture is the most common and efficient way to handle a microservices
 
 
 ![Diagram](https://github.com/sagarcodesandbox/aws-snowflake-microservices/blob/master/Comprehencive_AWS_Documents/images/Gemini_Generated_Image_6keydt6keydt6key.png)
+
+
+![Detailed Architecture Diagram](https://github.com/sagarcodesandbox/aws-snowflake-microservices/blob/master/Comprehencive_AWS_Documents/images/Detailed-Architecture-Diagram.png)
