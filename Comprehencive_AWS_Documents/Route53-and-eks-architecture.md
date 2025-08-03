@@ -436,3 +436,6 @@ This diagram shows how one ALB becomes the central router for multiple microserv
 </pre>
 
 This architecture is the most common and efficient way to handle a microservices API gateway in EKS. You have the flexibility to create multiple Ingresses for each service while still benefiting from a single, centralized load balancer.
+
+
+![Diagram](https://github.com/sagarcodesandbox/aws-snowflake-microservices/blob/master/Comprehencive_AWS_Documents/images/Gemini_Generated_Image_6keydt6keydt6key.png)
