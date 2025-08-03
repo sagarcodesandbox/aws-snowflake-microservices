@@ -30,7 +30,7 @@ Let's follow one request from a user's browser all the way to a single microserv
 
 **Step 1: The User's Request**
 The user wants to buy something, so they type a web address into their browser.
-
+<pre>
 ┌──────────────────────────────────────────────────────────┐
 │                                                          │
 │                                                          │
@@ -49,7 +49,7 @@ The user wants to buy something, so they type a web address into their browser.
 │                                                          │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
-
+</pre>
                                  
 
 
