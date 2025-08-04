@@ -706,9 +706,9 @@ The Flow of a Request
 7. The microservice in the pod processes the request and sends a response back along the same path.
 
 
-![Detailed Architecture Diagram](https://github.com/sagarcodesandbox/aws-snowflake-microservices/blob/master/Comprehencive_AWS_Documents/images/Detailed-Architecture-Diagram.png)
 
-##  📌 🤔  ##
+
+##  📌 🤔  What is this layering in Load Balancers? ##
 
 The concept of layers in load balancers comes from the **OSI (Open Systems Interconnection) model**, a conceptual framework that standardizes the functions of a telecommunication or computing system into seven distinct layers. Load balancers operate at different layers of this model, primarily at Layer 4 and Layer 7, which dictates what information they can use to make traffic-routing decisions.
 
