@@ -46,3 +46,67 @@ These services help with messaging, monitoring, security, and more complex workf
     * **AWS Step Functions**: A **serverless workflow service** for orchestrating complex business processes.
     * **AWS App Mesh**: A **service mesh** that standardizes communication and provides greater visibility between microservices.
     * **Amazon CloudFront**: A **Content Delivery Network (CDN)** that caches content at edge locations to reduce latency and improve performance.
+
+##  CI-CD Devops ##
+
+### EKS DevOps CI/CD Pipeline
+
+Here is a breakdown of a typical, automated pipeline for an AWS microservices project using EKS, converted into Markdown format.
+
+---
+
+#### 1. Code & Commit (Source Stage)
+
+* **Developer Action**: A developer writes code for a microservice and pushes it to a Git repository.
+* **AWS Services**:
+    * **AWS CodeCommit**: A fully managed source control service that hosts private Git repositories. (You can also use GitHub, GitLab, etc.)
+
+CodePipeline is configured to watch this repository for any new commits. When a new commit is detected, the pipeline automatically starts.
+
+---
+
+#### 2. Build & Test (Build Stage)
+
+* **Automated Action**: CodePipeline triggers a build job.
+* **AWS Services**:
+    * **AWS CodeBuild**: A fully managed build service. It compiles the source code, runs unit tests, and importantly, creates a **Docker container image** of the microservice. The container image is tagged with a unique identifier (e.g., the Git commit hash).
+
+---
+
+#### 3. Store & Tag (Container Registry)
+
+* **Automated Action**: The newly created container image is pushed to a central repository.
+* **AWS Services**:
+    * **Amazon ECR (Elastic Container Registry)**: A fully managed container registry. It stores the Docker image securely and makes it available for deployment. ECR is where your microservices "live" as container images.
+
+---
+
+#### 4. Deploy (Continuous Delivery)
+
+This is the stage where the new microservice version is deployed to your live EKS cluster.
+
+* **Automated Action**: CodePipeline takes the ECR image tag from the previous stage and uses it to update your Kubernetes deployment manifest.
+* **AWS Services**:
+    * **AWS CodeDeploy**: A service that automates code deployments. In an EKS context, it often works with a tool like `kubectl` to apply the updated Kubernetes manifest.
+    * **EKS**: The cluster receives the updated deployment manifest and schedules the new pods to run on the available worker nodes (either EC2 or Fargate). It gracefully terminates the old pods once the new ones are ready and healthy.
+
+---
+
+#### 5. Run & Orchestrate (Runtime)
+
+* **Live Application**: The new version of your microservice is now live.
+* **AWS Services**:
+    * **EKS**: Manages the pod lifecycle, ensuring the right number of pods are running.
+    * **ELB (as Ingress)**: The Application Load Balancer routes live traffic to the new pods.
+    * **Route 53**: Directs all incoming requests to the ALB.
+
+---
+
+#### 6. Monitor & Observe (Feedback Loop)
+
+* **Continuous Monitoring**: The pipeline is not complete until you have a feedback loop.
+* **AWS Services**:
+    * **Amazon CloudWatch**: Gathers logs, metrics, and events from your EKS cluster and microservices.
+    * **AWS X-Ray**: Provides a visual trace of every request as it flows through your microservices, helping you identify bottlenecks and errors.
+
+This feedback loop allows your team to catch errors and performance issues quickly, which can then trigger a new commit, restarting the entire cycle.
