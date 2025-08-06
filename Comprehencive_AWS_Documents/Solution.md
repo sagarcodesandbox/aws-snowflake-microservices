@@ -452,6 +452,487 @@ The ParkingLotService is central to managing parking space allocation and ensuri
 
          *   Deletes the Ticket record.
 
-         *   Sends an asynchronous message to the message queue (e.g., messageProducer.sendUnparkCommand(spotId)).
+         *   Sends an asynchronous message to the message queue (e.g., messageProducer.sendUnparkCommand(spotId))
+
+
+### **2\. API Gateway Endpoints (External/Public Facing)**
+
+These are the primary endpoints exposed by the **API Gateway** to the external world (e.g., the Terminal UI). The API Gateway will then route these requests to the appropriate internal microservices.
+
+#### **2.1. Parking Operations**
+
+-   **Request to Park a Car (Ticket Creation)**
+
+    -   **Endpoint:** `POST /v1/parking/park`
+
+    -   **Description:** Initiates the parking process. The `TicketEntryService` orchestrates this, calling `CarSizingService` and `ParkingLotService`.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "vehicleDetails": {
+                "licensePlate": "ABC123",
+                "vehicleType": "CAR", // CAR, MOTORCYCLE, VAN, TRUCK
+                "dimensions": {
+                    "lengthCm": 450,
+                    "widthCm": 180,
+                    "heightCm": 150
+                }
+            }
+        }
+
+        ```
+
+    -   **Success Response (201 Created):**
+
+        JSON
+
+        ```
+        {
+            "ticketId": "TICKET-XYZ789",
+            "spaceId": "S-005",
+            "entryTime": "2025-08-06T10:30:00Z",
+            "message": "Car parked successfully. Please take your ticket."
+        }
+
+        ```
+
+    -   **Error Response (e.g., 400 Bad Request, 409 Conflict):**
+
+        JSON
+
+        ```
+        {
+            "code": "PARKING_FULL",
+            "message": "No available spots for the specified vehicle type."
+        }
+
+        ```
+
+-   **Request to Unpark a Car**
+
+    -   **Endpoint:** `POST /v1/parking/unpark`
+
+    -   **Description:** Initiates the unparking process. The `TicketEntryService` orchestrates this, calling `ParkingLotService` and `PaymentService`.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "ticketId": "TICKET-XYZ789"
+        }
+
+        ```
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "ticketId": "TICKET-XYZ789",
+            "spaceId": "S-005",
+            "entryTime": "2025-08-06T10:30:00Z",
+            "exitTime": "2025-08-06T12:30:00Z",
+            "parkingDurationMinutes": 120,
+            "amountDue": 15.00,
+            "currency": "USD",
+            "message": "Please proceed to payment."
+        }
+
+        ```
+
+    -   **Error Response (e.g., 404 Not Found, 400 Bad Request):**
+
+        JSON
+
+        ```
+        {
+            "code": "TICKET_NOT_FOUND",
+            "message": "Invalid or expired ticket ID."
+        }
+
+        ```
+
+#### **2.2. Information Retrieval**
+
+-   **Get Available Parking Spots**
+
+    -   **Endpoint:** `GET /v1/parking/available-spots`
+
+    -   **Description:** Retrieves the count of available parking spots, optionally filtered by size.
+
+    -   **Query Parameters:**
+
+        -   `vehicleType` (Optional): `CAR`, `MOTORCYCLE`, `VAN`, `TRUCK`
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "totalAvailable": 150,
+            "details": [
+                { "vehicleType": "CAR", "availableCount": 100 },
+                { "vehicleType": "MOTORCYCLE", "availableCount": 20 },
+                { "vehicleType": "VAN", "availableCount": 15 },
+                { "vehicleType": "TRUCK", "availableCount": 15 }
+            ]
+        }
+
+        ```
+
+    -   **Example with `vehicleType` query parameter:** `GET /v1/parking/available-spots?vehicleType=CAR`
+
+        JSON
+
+        ```
+        {
+            "totalAvailable": 100,
+            "details": [
+                { "vehicleType": "CAR", "availableCount": 100 }
+            ]
+        }
+
+        ```
+
+-   **Get Ticket Details**
+
+    -   **Endpoint:** `GET /v1/tickets/{ticketId}`
+
+    -   **Description:** Retrieves details for a specific parking ticket.
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "ticketId": "TICKET-XYZ789",
+            "licensePlate": "ABC123",
+            "vehicleType": "CAR",
+            "spaceId": "S-005",
+            "entryTime": "2025-08-06T10:30:00Z",
+            "exitTime": null, // or "2025-08-06T12:30:00Z" if unparked
+            "parkingDurationMinutes": null, // or 120
+            "amountDue": 15.00, // or 0.00 if paid
+            "currency": "USD",
+            "isPaid": false // or true
+        }
+
+        ```
+
+    -   **Error Response (e.g., 404 Not Found):**
+
+        JSON
+
+        ```
+        {
+            "code": "TICKET_NOT_FOUND",
+            "message": "Ticket with ID TICKET-XYZ789 not found."
+        }
+
+        ```
+
+#### **2.3. Payment Operations**
+
+-   **Process Payment**
+
+    -   **Endpoint:** `POST /v1/payments`
+
+    -   **Description:** Records a payment for a parking ticket.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "ticketId": "TICKET-XYZ789",
+            "amountPaid": 15.00,
+            "currency": "USD",
+            "paymentMethod": "CREDIT_CARD", // or DEBIT_CARD, CASH, MOBILE_PAY
+            "transactionDetails": {
+                "cardNumberLast4": "1234",
+                "cardType": "VISA"
+            }
+        }
+
+        ```
+
+    -   **Success Response (201 Created):**
+
+        JSON
+
+        ```
+        {
+            "paymentId": "PAY-12345",
+            "ticketId": "TICKET-XYZ789",
+            "amountPaid": 15.00,
+            "currency": "USD",
+            "paymentTime": "2025-08-06T12:35:00Z",
+            "message": "Payment processed successfully."
+        }
+
+        ```
+
+    -   **Error Response (e.g., 400 Bad Request, 404 Not Found, 409 Conflict):**
+
+        JSON
+
+        ```
+        {
+            "code": "PAYMENT_FAILED",
+            "message": "Payment could not be processed due to insufficient funds."
+        }
+
+        ```
+
+* * * * *
+
+### **3\. Microservice-Specific Endpoints (Internal)**
+
+These APIs are typically consumed by other microservices or the API Gateway, not directly by external clients.
+
+#### **3.1. `TicketEntryService` (Orchestrator)**
+
+-   *(No direct external API, acts as an orchestrator for external requests)*
+
+#### **3.2. `CarSizingService`**
+
+-   **Classify Vehicle Size**
+
+    -   **Endpoint:** `POST /internal/v1/car-sizing/classify`
+
+    -   **Description:** Classifies a vehicle into `SMALL`, `MEDIUM`, or `LARGE` based on dimensions.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "vehicleType": "CAR",
+            "dimensions": {
+                "lengthCm": 450,
+                "widthCm": 180,
+                "heightCm": 150
+            }
+        }
+
+        ```
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "carSize": "MEDIUM" // SMALL, MEDIUM, LARGE
+        }
+
+        ```
+
+    -   **Error Response (e.g., 400 Bad Request):** Invalid dimensions.
+
+#### **3.3. `ParkingLotService`**
+
+-   **Find and Lock Parking Spot**
+
+    -   **Endpoint:** `POST /internal/v1/parking-lots/allocate`
+
+    -   **Description:** Finds and *locks* an available parking spot for a given car size. This is where pessimistic locking occurs.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "carSize": "MEDIUM", // SMALL, MEDIUM, LARGE
+            "carId": "XYZ-1234" // Unique ID for the car (same as ticketId)
+        }
+
+        ```
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "spaceId": "M-023"
+        }
+
+        ```
+
+    -   **Error Response (e.g., 409 Conflict, 404 Not Found):** No available spots.
+
+-   **Release Parking Spot**
+
+    -   **Endpoint:** `POST /internal/v1/parking-lots/release`
+
+    -   **Description:** Marks a parking spot as available.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "spaceId": "M-023",
+            "carId": "XYZ-1234"
+        }
+
+        ```
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "message": "Parking spot M-023 released."
+        }
+
+        ```
+
+    -   **Error Response (e.g., 404 Not Found):** Spot not found or not occupied by this car.
+
+-   **Get Parking Spot Status (Internal)**
+
+    -   **Endpoint:** `GET /internal/v1/parking-lots/spots/{spaceId}`
+
+    -   **Description:** Retrieves detailed status of a specific parking spot.
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "spaceId": "M-023",
+            "size": "MEDIUM",
+            "isOccupied": true,
+            "carId": "XYZ-1234"
+        }
+
+        ```
+
+#### **3.4. `PaymentService`**
+
+-   **Calculate Parking Fee**
+
+    -   **Endpoint:** `GET /internal/v1/payments/calculate-fee`
+
+    -   **Description:** Calculates the parking fee based on entry time and current time/exit time.
+
+    -   **Query Parameters:**
+
+        -   `ticketId`: The ID of the ticket.
+
+    -   **Success Response (200 OK):**
+
+        JSON
+
+        ```
+        {
+            "amountDue": 15.00,
+            "currency": "USD",
+            "parkingDurationMinutes": 120
+        }
+
+        ```
+
+    -   **Error Response (e.g., 404 Not Found):** Ticket not found.
+
+-   **Record Payment Transaction**
+
+    -   **Endpoint:** `POST /internal/v1/payments/record`
+
+    -   **Description:** Records a successful payment transaction.
+
+    -   **Request Body:**
+
+        JSON
+
+        ```
+        {
+            "ticketId": "TICKET-XYZ789",
+            "amount": 15.00,
+            "currency": "USD",
+            "paymentMethod": "CREDIT_CARD",
+            "transactionReference": "PAYGATEWAY-TXN-ABC"
+        }
+
+        ```
+
+    -   **Success Response (201 Created):**
+
+        JSON
+
+        ```
+        {
+            "paymentId": "PAY-12345",
+            "message": "Payment recorded."
+        }
+
+        ```
+
+    -   **Error Response:** Payment recording failed.
+
+* * * * *
+
+### **4\. Consistent Error Handling**
+
+All API responses for errors should follow a consistent structure to make error handling predictable for clients.
+
+-   **Error Response Structure:**
+
+    JSON
+
+    ```
+    {
+        "timestamp": "2025-08-06T10:30:00Z",
+        "status": 400,
+        "error": "Bad Request",
+        "code": "INVALID_INPUT", // A specific, internal error code
+        "message": "Vehicle dimensions are missing.",
+        "path": "/v1/parking/park"
+    }
+
+    ```
+
+-   **Common Error Codes:**
+
+    -   `INVALID_INPUT`: Malformed request body, missing required fields, invalid data types.
+
+    -   `NOT_FOUND`: Resource not found (e.g., `ticketId` not found).
+
+    -   `CONFLICT`: Resource conflict (e.g., parking spot already occupied, payment already processed).
+
+    -   `UNAUTHORIZED`: Missing or invalid authentication credentials.
+
+    -   `FORBIDDEN`: Authenticated but not authorized to perform the action.
+
+    -   `SERVICE_UNAVAILABLE`: Downstream service issue or temporary outage.
+
+    -   `INTERNAL_SERVER_ERROR`: Generic server-side error.
+
+* * * * *
+
+### **5\. API Versioning**
+
+We will use **URI Versioning** (embedding the version number in the URL path) as it's simple, explicit, and widely understood.
+
+-   **Example:** `/v1/parking/park`
+
+-   **Strategy:** When significant breaking changes are introduced (e.g., a change in request/response schema that's not backward compatible), a new version (`/v2/`) will be released. Older versions will be maintained for a deprecation period.
 
 
