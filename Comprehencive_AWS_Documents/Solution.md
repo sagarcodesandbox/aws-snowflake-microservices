@@ -29,8 +29,47 @@ The Automated Parking Garage system is composed of two primary layers: the **Phy
 
 
 ### 2\. High-Level System Diagram (ASCII)
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML        `+------------------+          |                  |          |  Customer Car    |          |                  |          +---------+--------+                    |                    v         +--------------------+         |   Parking Lift     |  <-- Car enters         +----------+---------+                    |          +---------+---------+          |                   |          v                   v  +------------------+     +------------------+  | Car Dimension    |     |    Terminal      |  |    Sensors       |     |  (User I/O)      |  +------------------+     +------------------+            |                       |            v                       v  +------------------+     +------------------+  |  Car Classifier  |     |  Parking Manager |  |                  |     |  (System Logic)  |  +------------------+     +------------------+            |                       ^            |                       |            +---------------------->+                                    |                                    v  +--------------------+      +--------------------+  |   Lift Controller  |----->|  Automated         |  |                    |      |  Transport System  |  +--------------------+      +--------------------+            |                       |            v                       v  +------------------+     +--------------------+  |    Parking       |     |     Database       |  |     Spaces       |<----|  (Parking State)   |  +------------------+     +--------------------+`
+<pre>
+        +------------------+
+        |                  |
+        |  Customer Car    |
+        |                  |
+        +---------+--------+
+                  |
+                  v
+       +--------------------+
+       |   Parking Lift     |  <-- Car enters
+       +----------+---------+
+                  |
+        +---------+---------+
+        |                   |
+        v                   v
++------------------+     +------------------+
+| Car Dimension    |     |    Terminal      |
+|    Sensors       |     |  (User I/O)      |
++------------------+     +------------------+
+          |                       |
+          v                       v
++------------------+     +------------------+
+|  Car Classifier  |     |  Parking Manager |
+|                  |     |  (System Logic)  |
++------------------+     +------------------+
+          |                       ^
+          |                       |
+          +---------------------->+
+                                  |
+                                  v
++--------------------+      +--------------------+
+|   Lift Controller  |----->|  Automated         |
+|                    |      |  Transport System  |
++--------------------+      +--------------------+
+          |                       |
+          v                       v
++------------------+     +--------------------+
+|    Parking       |     |     Database       |
+|     Spaces       |<----|  (Parking State)   |
++------------------+     +--------------------+
+</pre>
 
 ### 3\. User Interaction Flow
 
@@ -61,13 +100,20 @@ The system needs to track the status of all parking spaces and the cars currentl
 
 *   **ParkingSpaces Table:**
 
-
-ColumnData TypeDescriptionspace\_idVARCHAR(10)Unique identifier for each parking space (e.g., S-01, M-50, L-10).sizeENUM('Small', 'Medium', 'Large')The designated size of the space.is\_occupiedBOOLEANA flag indicating if the space is currently taken (true) or empty (false).car\_idVARCHAR(10)The unique ID of the car in the space (nullable).Export to Sheets
+| Column      | Data Type                          | Description                                                                 |
+|-------------|------------------------------------|-----------------------------------------------------------------------------|
+| `space_id`  | `VARCHAR(10)`                      | Unique identifier for each parking space (e.g., S-01, M-50, L-10).         |
+| `size`      | `ENUM('Small', 'Medium', 'Large')` | The designated size of the space.                                           |
+| `is_occupied` | `BOOLEAN`                        | A flag indicating if the space is currently taken (`true`) or empty (`false`). |
+| `car_id`    | `VARCHAR(10)`                      | The unique ID of the car in the space (nullable).                          |
 
 *   **Tickets Table:**
-
-
-ColumnData TypeDescriptionticket\_idVARCHAR(10)The unique identifier printed on the ticket. This ID is also the car\_id.car\_sizeENUM('Small', 'Medium', 'Large')The size of the car that was parked.entry\_timestampTIMESTAMPThe time the car was parked.space\_idVARCHAR(10)The parking space the car was assigned to.Export to Sheets
+    | Column           | Data Type                          | Description                                                              |
+    |------------------|------------------------------------|--------------------------------------------------------------------------|
+    | `ticket_id`      | `VARCHAR(10)`                      | The unique identifier printed on the ticket. This ID is also the `car_id`. |
+    | `car_size`       | `ENUM('Small', 'Medium', 'Large')` | The size of the car that was parked.                                     |
+    | `entry_timestamp`| `TIMESTAMP`                        | The time the car was parked.                                             |
+    | `space_id`       | `VARCHAR(10)`                      | The parking space the car was assigned to.                               |
 
 The car\_id in ParkingSpaces and the ticket\_id in Tickets act as a link between the physical location and the customer's record.
 
@@ -143,9 +189,48 @@ To make the system more scalable, maintainable, and resilient, the functionality
 #### Detailed Microservices Architecture Diagram
 
 The introduction of an **API Gateway** provides a single, secure entry point for all incoming requests, which is a best practice for microservices. This new diagram illustrates the detailed communication flow, including the API Gateway and asynchronous messaging.
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   +---------------------+  |   Terminal (UI)     |  +----------+----------+             | HTTP(s)             v  +---------------------+  |    API Gateway      |  |  (e.g., Spring     |  |   Cloud Gateway)    |  +----------+----------+             |             +--------------------------------------------+             |                                            |             v HTTP(s)                                    v HTTP(s)  +---------------------+                      +---------------------+  |  Ticket/Entry       |                      |   Car Sizing        |  |  Service            |<-------------------->|   Service           |  |  (Spring Boot REST) |  (Internal Call)     |  (Spring Boot REST) |  +----------+----------+                      +---------------------+             |             v HTTP(s)  +---------------------+  |  Parking Lot        |  |  Service            |  |  (Spring Boot REST) |  +----------+----------+             |             +--------------------------------+             |  (Asynchronous Message Queue)  |             v                                |  +---------------------+                     |  |  Automated          |                     |  |  Transport Service  |<--------------------+  |  (Spring Boot)      |  +---------------------+             |             v  +---------------------+  | Physical Components |  +---------------------+   `
-
+<pre>
++---------------------+
+|   Terminal (UI)     |
++----------+----------+
+           | HTTP(s)
+           v
++---------------------+
+|    API Gateway      |
+|  (e.g., Spring     |
+|   Cloud Gateway)    |
++----------+----------+
+           |
+           +--------------------------------------------+
+           |                                            |
+           v HTTP(s)                                    v HTTP(s)
++---------------------+                      +---------------------+
+|  Ticket/Entry       |                      |   Car Sizing        |
+|  Service            |<-------------------->|   Service           |
+|  (Spring Boot REST) |  (Internal Call)     |  (Spring Boot REST) |
++----------+----------+                      +---------------------+
+           |
+           v HTTP(s)
++---------------------+
+|  Parking Lot        |
+|  Service            |
+|  (Spring Boot REST) |
++----------+----------+
+           |
+           +--------------------------------+
+           |  (Asynchronous Message Queue)  |
+           v                                |
++---------------------+                     |
+|  Automated          |                     |
+|  Transport Service  |<--------------------+
+|  (Spring Boot)      |
++---------------------+
+           |
+           v
++---------------------+
+| Physical Components |
++---------------------+
+</pre>
 #### Microservice Roles and Responsibilities
 
 *   **API Gateway:**
@@ -206,8 +291,59 @@ The ParkingLotService is central to managing parking space allocation and ensuri
 
 #### ParkingLotService Class Diagram (ASCII)
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   +--------------------------+  |      ParkingLotService   |  +--------------------------+  | - parkingSpotRepository  | <--- Dependency Injection  | - ticketRepository       | <--- Dependency Injection  | - messageProducer        | <--- Dependency Injection (for Async)  +--------------------------+  | + getAvailableSpots(size): int    |  | + parkCar(carSize, carId): ParkingResponse |  | + unparkCar(ticketId): boolean    |  +--------------------------+               | Uses               v  +--------------------------+  |    ParkingSpotRepository |  +--------------------------+  | + findByIsOccupiedFalseAndSizeOrderBySizeAsc(size, pageable): Page |  | + save(parkingSpot): ParkingSpot |  | + findByCarId(carId): Optional |  | + findById(spaceId): Optional |  +--------------------------+               | Interacts with               v  +--------------------------+  |        ParkingSpot       |  +--------------------------+  | - spaceId: String        |  | - size: Enum             |  | - isOccupied: Boolean    |  | - carId: String          |  +--------------------------+               ^               | Creates               |  +--------------------------+  |          Ticket          |  +--------------------------+  | - ticketId: String       |  | - carSize: Enum          |  | - entryTimestamp: Timestamp |  | - spaceId: String        |  +--------------------------+               ^               | Uses               |  +--------------------------+  |     TicketRepository     |  +--------------------------+  | + save(ticket): Ticket   |  | + findById(ticketId): Optional |  +--------------------------+   `
-
+<pre>
++--------------------------+
+|      ParkingLotService   |
++--------------------------+
+| - parkingSpotRepository  | <--- Dependency Injection
+| - ticketRepository       | <--- Dependency Injection
+| - messageProducer        | <--- Dependency Injection (for Async)
++--------------------------+
+| + getAvailableSpots(size): int    |
+| + parkCar(carSize, carId): ParkingResponse |
+| + unparkCar(ticketId): boolean    |
++--------------------------+
+             | Uses
+             v
++--------------------------+
+|    ParkingSpotRepository |
++--------------------------+
+| + findByIsOccupiedFalseAndSizeOrderBySizeAsc(size, pageable): Page<ParkingSpot> |
+| + save(parkingSpot): ParkingSpot |
+| + findByCarId(carId): Optional<ParkingSpot> |
+| + findById(spaceId): Optional<ParkingSpot> |
++--------------------------+
+             | Interacts with
+             v
++--------------------------+
+|        ParkingSpot       |
++--------------------------+
+| - spaceId: String        |
+| - size: Enum             |
+| - isOccupied: Boolean    |
+| - carId: String          |
++--------------------------+
+             ^
+             | Creates
+             |
++--------------------------+
+|          Ticket          |
++--------------------------+
+| - ticketId: String       |
+| - carSize: Enum          |
+| - entryTimestamp: Timestamp |
+| - spaceId: String        |
++--------------------------+
+             ^
+             | Uses
+             |
++--------------------------+
+|     TicketRepository     |
++--------------------------+
+| + save(ticket): Ticket   |
+| + findById(ticketId): Optional<Ticket> |
++--------------------------+
+</pre>
 #### Detailed Explanation of Classes
 
 1.  **ParkingSpot (Entity/Model)**
@@ -319,34 +455,3 @@ Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQL
          *   Sends an asynchronous message to the message queue (e.g., messageProducer.sendUnparkCommand(spotId)).
 
 
-#### Pessimistic Locking in Action (Example Snippet in ParkingLotService)
-
-Java
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   // Inside ParkingLotService.java  @Service  public class ParkingLotService {      @Autowired      private ParkingSpotRepository parkingSpotRepository;      @Autowired      private TicketRepository ticketRepository;      @Autowired      private MessageProducer messageProducer; // For sending commands to AutomatedTransportService      // Enum for car sizes      public enum CarSize {          SMALL, MEDIUM, LARGE      }      @Transactional // Ensures the entire method runs in a single transaction      public ParkingResponse parkCar(CarSize carSize, String carId) {          // Implement greedy algorithm with pessimistic locking          // 1. Try to find an exact match (e.g., Small car in Small spot)          Optional assignedSpot = findAndLockAvailableSpot(carSize);          // 2. If no exact match, try next largest compatible sizes          if (carSize == CarSize.SMALL && assignedSpot.isEmpty()) {              assignedSpot = findAndLockAvailableSpot(CarSize.MEDIUM);          }          if ((carSize == CarSize.SMALL || carSize == CarSize.MEDIUM) && assignedSpot.isEmpty()) {              assignedSpot = findAndLockAvailableSpot(CarSize.LARGE);          }          if (assignedSpot.isPresent()) {              ParkingSpot spot = assignedSpot.get();              spot.setOccupied(true);              spot.setCarId(carId);              parkingSpotRepository.save(spot); // Persist the change              // Generate unique ticket ID (e.g., UUID.randomUUID().toString())              String ticketId = "TICKET-" + UUID.randomUUID().toString().substring(0, 7);              Ticket ticket = new Ticket(ticketId, carSize, LocalDateTime.now(), spot.getSpaceId());              ticketRepository.save(ticket); // Save the ticket              // Send asynchronous message to AutomatedTransportService              messageProducer.sendParkCommand(spot.getSpaceId(), carId);              return new ParkingResponse(ticketId, spot.getSpaceId(), "Car parked successfully.");          } else {              throw new ParkingFullException("No available spots for car size: " + carSize);          }      }      // Helper method to find and lock a single available spot      @Transactional(propagation = Propagation.MANDATORY) // Must be called within an existing transaction      private Optional findAndLockAvailableSpot(CarSize size) {          // This custom query in ParkingSpotRepository will use SELECT ... FOR UPDATE          // We're fetching the first available one to assign it.          // The PageRequest.of(0, 1) ensures we only get one result.          return parkingSpotRepository.findFirstByIsOccupiedFalseAndSize(size, PageRequest.of(0, 1));      }      // Example of a custom repository method with locking      // Inside ParkingSpotRepository.java      public interface ParkingSpotRepository extends JpaRepository {          @Lock(LockModeType.PESSIMISTIC_WRITE)          Optional findFirstByIsOccupiedFalseAndSize(CarSize size, Pageable pageable);          // Other methods like findByCarId, findById would also be here      }  }   `
-
-#### API Endpoints for ParkingLotService
-
-The ParkingLotService will expose REST endpoints for its functionality.
-
-*   **POST /api/v1/parking/park**
-
-   *   JSON{ "carSize": "SMALL", // or MEDIUM, LARGE "carId": "XYZ-1234"}
-
-   *   JSON{ "ticketId": "TICKET-abcdefg", "spaceId": "S-005", "message": "Car parked successfully."}
-
-   *   JSON{ "message": "No available spots for car size: SMALL"}
-
-*   **POST /api/v1/parking/unpark**
-
-   *   JSON{ "ticketId": "TICKET-abcdefg"}
-
-   *   JSON{ "message": "Car unparked successfully from S-005."}
-
-   *   JSON{ "message": "Ticket not found or car already unparked."}
-
-*   **GET /api/v1/parking/available-spots/{carSize}**
-
-   *   **Path Variable:** carSize (e.g., SMALL, MEDIUM, LARGE)
-
-   *   JSON{ "carSize": "SMALL", "availableCount": 45}
