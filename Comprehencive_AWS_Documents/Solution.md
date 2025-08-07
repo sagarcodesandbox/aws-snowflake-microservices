@@ -29,47 +29,11 @@ The Automated Parking Garage system is composed of two primary layers: the **Phy
 
 
 ### 2\. High-Level System Diagram (ASCII)
-<pre>
-        +------------------+
-        |                  |
-        |  Customer Car    |
-        |                  |
-        +---------+--------+
-                  |
-                  v
-       +--------------------+
-       |   Parking Lift     |  <-- Car enters
-       +----------+---------+
-                  |
-        +---------+---------+
-        |                   |
-        v                   v
-+------------------+     +------------------+
-| Car Dimension    |     |    Terminal      |
-|    Sensors       |     |  (User I/O)      |
-+------------------+     +------------------+
-          |                       |
-          v                       v
-+------------------+     +------------------+
-|  Car Classifier  |     |  Parking Manager |
-|                  |     |  (System Logic)  |
-+------------------+     +------------------+
-          |                       ^
-          |                       |
-          +---------------------->+
-                                  |
-                                  v
-+--------------------+      +--------------------+
-|   Lift Controller  |----->|  Automated         |
-|                    |      |  Transport System  |
-+--------------------+      +--------------------+
-          |                       |
-          v                       v
-+------------------+     +--------------------+
-|    Parking       |     |     Database       |
-|     Spaces       |<----|  (Parking State)   |
-+------------------+     +--------------------+
-</pre>
+
+
+![Status](https://github.com/sagarcodesandbox/aws-snowflake-microservices/blob/master/Comprehencive_AWS_Documents/images/Cloud%20Architecture.png)
+
+
 
 ### 3\. User Interaction Flow
 
