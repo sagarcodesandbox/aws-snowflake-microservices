@@ -422,6 +422,7 @@ The ParkingLotService is central to managing parking space allocation and ensuri
 ### **2\. API Gateway Endpoints (External/Public Facing)**
 
 These are the primary endpoints exposed by the **API Gateway** to the external world (e.g., the Terminal UI). The API Gateway will then route these requests to the appropriate internal microservices.
+![Status](https://github.com/sagarcodesandbox/aws-snowflake-microservices/blob/master/Comprehencive_AWS_Documents/images/Database%20ER%20diagram%20(crow's%20foot).png)
 
 #### **2.1. Parking Operations**
 
